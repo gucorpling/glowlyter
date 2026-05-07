@@ -19,7 +19,7 @@ https://gucorpling.org/glowlyter.html
 
 ## Use cases
 
-The annotation was originally built for aligning text segments to content displayed in a carousel at the top of the interface, specifically aiming to highlight sentences that correspond to contents in multiple summaries of a document. However it can be used to highlight and categorize text spans in a running document in many ways.
+The annotation tool was originally built for aligning text segments to content displayed in a carousel at the top of the interface, specifically aiming to highlight sentences that correspond to contents in multiple summaries of a document. However it can be used to highlight and categorize text spans in a running document in many ways.
 
 ## Interface
 
@@ -41,7 +41,7 @@ to sustain and wage war.
 ...
 ```
 
-The carousel at the top will cycle through each metadata item in the header (except `annos`). In this example, there are two summaries - a separate highlighting profile will be stored for each one, so if you change from summary1 to summary2, highlights will behave separately.
+The carousel at the top will cycle through each metadata item in the header (except `annos`). In this example, there are two summaries - a separate highlighting profile will be stored for each one, so if you change from summary1 to summary2, highlights will behave separately. Annotations are save in the same format, but two additional columns are added for each metadata version: a binary column (highlighted or not) and a json column saving key-value annotations.
 
 ### Annos declaration
 
