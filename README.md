@@ -49,7 +49,7 @@ The `#annos` declaration is responsible for generating the annotation dialog ele
 
   * **Check boxes** - added using the syntax `annoname:check`
   * **Numerical fields** - added by specifying a range of numbers, for example: `duplicate:0-128` (to mark that a unit is a duplicate of one of the other units, with possible IDs between 0-128)
-  * **Drop down lists** - added by specifying their values as in `annoname:val1,val2,val3,...``
+  * **Drop down lists** - added by specifying their values as in `annoname:val1,val2,val3,...`
   * **Free text** - declared as simple key names like `notes`
 
 ### Special span codes
