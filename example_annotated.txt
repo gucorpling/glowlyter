@@ -1,0 +1,134 @@
+# summary1 = (human1) This excerpt from a history book tells about the American Civil War, describing economic hardships for the Confederacy, its failure to obtain support from Great Britain and France, and the role of African American Union soldiers in the war.
+# summary2 = (human2) This section discusses some factors which led the Union to defeat the Confederacy in the Civil War, focusing on the Confederacy’s hope and ultimate failure to gain France and Great Britain as allies, and African American soldiers, who valiantly served the Union army despite getting lower wages and more menial jobs than White soldiers.
+# summary3 = (human3) This textbook section discusses how and why both France and Britain avoided becoming allies of the Confederacy and how African Americans, many of whom were formerly enslaved, fought valiantly for the Union, including in both combat and logistical support roles.
+# summary4 = (human4) This textbook section discusses some of the reasons why the Union prevailed over the Confederacy in the Civil War, including the Confederacy not gaining the alliances of France and Great Britain as they had hoped, and the Emancipation Proclamation allowing for the enlistment of African American soldiers, even though these soldiers were not treated equally to white soldiers.
+# summary5 = (human5) This section of a textbook describes the political and economic reasons behind the triumph of the Union over the Confederacy during the Civil War, including railroad lines, industry, and British support, before detailing the involvement of African-American soldiers in the Union war effort and the hardships they faced due to racism.
+# annos = approximate:check;component:check;duplicate:0-128;notes
+\b 15.4 The Union Triumphant \n	0		1		0		0		1	
+\b Learning Objectives \n	0		0		0		0		0	
+By the end of this section, you will be able to: \n	0		1	{"approximate":true,"notes":"trigger section"}	1	{"approximate":true,"notes":"triggers section"}	1	{"approximate":true,"notes":"triggers section"}	1	{"approximate":true}
+Describe the reasons	0		0		0		0		0	
+why many Americans doubted	0		0		0		0		0	
+that Abraham Lincoln would be reelected \n	0		0		0		0		0	
+Explain	0		0		0		0		0	
+how the Union forces overpowered the Confederacy \n	0		1		0		0		0	
+Describe the contributions and experiences of African Americans	1	{"approximate":true}	1		0		0		1	{"approximate":true}
+serving in the Civil War \n	1		0		0		0		1	{"approximate":true,"notes":"triggers Civil War"}
+By the outset of 1864, after three years of war, the Union had mobilized its resources for the ongoing struggle on a massive scale.	0		0		0		0		0	
+The government had overseen the construction of new railroad lines	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+and for the first time used standardized rail tracks	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+that allowed the North to move men and materials with greater ease.	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	{"approximate":true}
+The North’s economy had shifted to a wartime model.	0		0		0		0		0	
+The Confederacy also mobilized, perhaps to a greater degree than the Union, its efforts	0		0		0		0		0	
+to secure independence	0		0		0		0		0	
+and maintain slavery.	0		0		0		0		0	
+Yet the Confederacy experienced ever - greater hardships after years of war.	1		0		0		0		0	
+Without the population of the North,	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		0	
+it faced a shortage of manpower.	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		0	
+The lack of industry,	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+compared to the North,	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+\s-22 undercut the ability	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+to sustain and wage war.	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		0		1	
+Rampant inflation as well as food shortages in the South lowered morale. \n	1	{"approximate":true}	0		0		0		0	
+\b THE RELATIONSHIP WITH EUROPE \n	0		0		0		0		0	
+From the beginning of the war, the Confederacy placed great hope in being recognized and supported by Great Britain and France.	1	{"approximate":true}	1		1		1		0	
+European intervention in the conflict remained a strong possibility,	0		0		0		0		0	
+but	0		0		0		0		0	
+when it did occur,	0		0		0		0		0	
+\s-30 it was not in a way	0		0		0		0		0	
+anticipated by either the Confederacy or the Union. \n	0		0		0		0		0	
+Napoleon III of France believed	0		0		0		0		0	
+the Civil War presented an opportunity	0		0		0		0		0	
+for him to restore a French empire in the Americas.	0		0		0		0		0	
+With the United States preoccupied,	0		0		0		0		0	
+the time seemed ripe for action.	0		0		0		0		0	
+Napoleon’s target was Mexico,	0		0		0		0		0	
+and in 1861, a large French fleet took Veracruz.	0		0		0		0		0	
+The French then moved	0		0		0		0		0	
+to capture Mexico City,	0		0		0		0		0	
+but the advance came to an end	0		0		0		0		0	
+when Mexican forces defeated the French in 1862.	0		0		0		0		0	
+Despite this setback,	0		0		0		0		0	
+France eventually did conquer Mexico,	0		0		0		0		0	
+establishing a regime	0		0		0		0		0	
+that lasted until 1867.	0		0		0		0		0	
+Rather than coming to the aid of the Confederacy,	1		1		1		1		0	
+France used the Civil War	1		1		1		1		0	
+to provide a pretext for efforts	0		0		1	{"component":true}	0		0	
+to reestablish its former eighteenth - century colonial holdings. \n	0		0		1	{"component":true}	0		0	
+Still, the Confederacy had great confidence	0		0		0		0		0	
+that it would find an ally in Great Britain	0		0		0		0		0	
+despite the antislavery sentiment there.	0		0		0		0		0	
+Southerners hoped	0		0		0		0		0	
+Britain’s dependence on cotton for its textile mills would keep the country on their side.	0		0		0		0		0	
+The fact	0		0		0		0		0	
+that the British proved willing to build and sell ironclad ships	0		0		0		0		0	
+intended to smash through the Union naval blockade	0		0		0		0		0	
+\s-58 further raised Southern hopes.	0		0		0		0		0	
+The Confederacy purchased two of these armored blockade runners, the CSS Florida and the CSS Alabama.	0		0		0		0		0	
+Both were destroyed during the war. \n	0		0		0		0		0	
+The Confederacy’s staunch commitment to slavery eventually worked against British recognition and support,	0		0		1	{"component":true}	0		0	
+since Great Britain had abolished slavery in 1833.	0		0		1	{"component":true}	0		0	
+The 1863 Emancipation Proclamation ended any doubts	0		0		0		0		0	
+the British had	0		0		0		0		0	
+\s-66 about the goals of the Union cause.	0		0		0		0		0	
+In the aftermath of the proclamation, many in Great Britain cheered for a Union victory.	0		0		0		0		1	
+Ultimately, Great Britain, like France, disappointed the Confederacy’s hope of an alliance,	1		1		1		1		1	
+leaving the outnumbered and out - resourced states	0		0		0		0		0	
+that had left the Union	0		0		0		0		0	
+\s-71 to fend for themselves. \n	0		0		0		0		0	
+\b AFRICAN AMERICAN SOLDIERS \n	1		1		1		0		1	
+At the beginning of the war, in 1861 and 1862, Union forces had used contrabands, or escaped enslaved people, for manual labor.	1	{"component":true}	0		1		0		0	
+The Emancipation Proclamation, however, led to the enrollment of African American men as Union soldiers.	1	{"component":true}	0		0		1		0	
+Huge numbers of formerly enslaved as well as free Black people from the North enlisted,	0		0		0		1		0	
+and by the end of the war in 1865, their numbers had swelled to over 190,000.	0		0		0		0		0	
+Racism among White people in the Union army ran deep, however,	0		0		0		1	{"component":true}	1	
+fueling the belief	0		0		0		1	{"component":true}	0	
+that Black soldiers could never be effective or trustworthy.	0		0		0		1	{"component":true}	0	
+The Union also feared for the fate of captured Black soldiers.	0		0		0		0		0	
+Although many Black soldiers saw combat duty,	0		0		1		0		0	
+these factors affected the types of tasks	0		0		0		0		0	
+assigned to them.	0		0		0		0		0	
+Many Black regiments were limited to hauling supplies,	1	{"component":true}	1	{"component":true}	1	{"component":true}	0		1	{"component":true}
+serving as cooks,	1	{"component":true}	1	{"component":true}	1	{"component":true}	0		1	{"component":true}
+digging trenches,	1	{"component":true}	1	{"component":true}	1	{"component":true}	0		1	{"component":true}
+and doing other types of labor,	1	{"component":true}	1	{"component":true}	1	{"component":true}	0		1	{"component":true}
+rather than serving on the battlefield	1	{"component":true}	1	{"component":true}	1	{"component":true}	0		0	
+(Figure 15.16). \n	0		0		0		0		0	
+Figure 15.16	0		0		0		0		0	
+This 1865 daguerreotype illustrates three of the Union’s distinct advantages:	0		1	{"component":true,"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		1		0	
+African American soldiers, a stream of cannons and supplies, and an extensive railroad grid.	0		1	{"notes":"trigger for factors which led the Union to defeat the Confederacy"}	0		1	{"component":true}	0	
+(credit:	0		0		0		0		0	
+Library of Congress) \n	0		0		0		0		0	
+African American soldiers also received lower wages than their White counterparts:	0		1		0		1	{"component":true}	1	{"component":true}
+ten dollars per month,	0		0		0		0		0	
+with three dollars deducted for clothing.	0		0		0		0		0	
+White soldiers, in contrast, received thirteen dollars monthly, with no deductions.	0		0		0		0		0	
+Abolitionists and their Republican supporters in Congress worked	0		0		0		0		0	
+to correct this discriminatory practice,	0		0		0		0		0	
+and in 1864, Black soldiers began to receive the same pay as White soldiers plus retroactive pay to 1863	0		0		0		0		0	
+(Figure 15.17). \n	0		0		0		0		0	
+Figure 15.17	0		0		0		0		0	
+African American and White soldiers of the Union army pose together in this photograph,	0		0		0		0		0	
+although in reality, Black soldiers were often kept separate	0		0		0		0		0	
+and given only menial jobs. \n	0		0		0		0		0	
+For their part, African American soldiers welcomed the opportunity	0		0		0		0		0	
+to prove themselves.	0		0		0		0		0	
+Some 85 percent were formerly enslaved people	0		0		1		0		0	
+who were fighting for the liberation of all of the enslaved and the end of slavery.	0		0		0		0		0	
+When given the opportunity	0		1		1		0		0	
+to serve,	0		1		1		0		0	
+many Black regiments did so heroically.	0		1		1		0		0	
+One such regiment, the Fifty-Fourth Regiment of Massachusetts Volunteers, distinguished itself at Fort Wagner in South Carolina	0		1		1	{"approximate":true,"component":true}	0		0	
+by fighting valiantly against an entrenched Confederate position.	0		1	{"approximate":true,"component":true,"notes":"trigger valiantly"}	1	{"approximate":true,"component":true,"notes":"trigger valiantly"}	0		0	
+They willingly gave their lives for the cause. \n	0		0		0		0		0	
+The Confederacy, not surprisingly, showed no mercy to African American troops.	0		0		0		0		0	
+In April 1864, Southern forces attempted to take Fort Pillow in Tennessee from the Union forces	0		0		0		0		0	
+that had captured it in 1862.	0		0		0		0		0	
+Confederate troops under Major General Nathan Bedford Forrest, the future founder of the Ku Klux Klan, quickly overran the fort,	0		0		0		0		0	
+and the Union defenders surrendered.	0		0		0		0		0	
+Instead of taking the African American soldiers prisoner,	0		0		0		0		0	
+as they did the White soldiers,	0		0		0		0		0	
+the Confederates executed them.	0		0		0		0		0	
+The massacre outraged the North,	0		0		0		0		0	
+and the Union refused to engage in any future exchanges of prisoners with the Confederacy.	0		0		0		0		0	

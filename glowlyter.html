@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GlowLyter - Text Annotation Tool</title>
+<script src="jquery-3.6.0.min.js"></script>
+<style>
+  body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  #carousel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: navy;
+    color: white;
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    z-index: 30;
+  }
+  #carousel-text {
+    flex: 1;
+    text-align: left;
+  }
+  #carousel-buttons button {
+    background: white;
+    border: none;
+    padding: 3px 8px;
+    margin-left: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  #text-container {
+    margin-top: 60px; /* leave room for fixed carousel */
+    padding: 10px;
+    line-height: 1.6;
+  }
+  .sentence {
+    cursor: pointer;
+    background-color: transparent;
+    z-index: 20;
+    position: relative;
+  }
+  
+  /* --- CUSTOM HIGHLIGHT COLORS --- */
+  .sentence.highlighted {
+    background-color: yellow; /* Default */
+  }
+  .sentence.highlighted.highlight-approximate {
+    background-color: cyan;
+  }
+  .sentence.highlighted.highlight-component {
+    background-color: lightgreen;
+  }
+  .sentence.highlighted.highlight-duplicate {
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 5px,
+      rgba(0, 0, 0, 0.15) 5px,
+      rgba(0, 0, 0, 0.15) 6px
+    );
+  }
+  .sentence.co-duplicate {
+    outline: 2px solid black;
+    border-radius: 2px;
+    z-index: 30;
+  }
+  /* ------------------------------- */
+
+  .separator {
+    color: green;
+    opacity: 0.3;
+    margin: 0 4px;
+    user-select: none;
+  }
+  .note-icon {
+    margin-left: 5px;
+    color: gray;
+    cursor: pointer;
+    user-select: none;
+    background-color: transparent !important;
+    filter: grayscale(100%);
+    z-index: 0;
+    position: relative;
+  }
+  .note-icon.has-note {
+    color: darkorange;
+    font-weight: bold;
+    text-shadow: none;
+    filter: none;
+  }
+  .word[word="\\n"]{
+    display:none;
+  }
+  .word[word^="\\s-"]{
+    display:none;
+  }
+  .prefix-label {
+    font-weight: bold;
+    color: navy;
+    user-select: none;
+    cursor: default;
+  }
+  .anno-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 999;
+  }
+  .anno-dialog {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+    max-width: 400px;
+  }
+  .anno-row {
+    margin-bottom: 10px;
+  }
+  .anno-buttons {
+    text-align: right;
+  }
+</style>
+</head>
+<body>
+
+<div id="carousel">
+  <div><a href="https://github.com/gucorpling/glowlyter"><img src="glowlyter.png" style="width:150px; padding-right:10px"></a></div>
+  <div id="carousel-text">No metadata loaded</div>
+  <div id="carousel-buttons">
+    <button id="prev">◀</button>
+    <button id="next">▶</button>
+  </div>
+  <input type="file" id="fileInput">
+  <button id="exportBtn">Export</button>
+</div>
+
+<div id="text-container"></div>
+
+<script>
+let sentences = [];
+let metadata = [];
+let currentMetaIndex = 0;
+let linkGroups = [];
+let annotationDefs = [];
+
+// ---------------- Layout ----------------
+function adjustLayout() {
+  const carouselHeight = $("#carousel").outerHeight();
+  $("#text-container").css("margin-top", carouselHeight + "px");
+}
+
+function updateCarousel() {
+  if (metadata.length === 0) {
+    $("#carousel-text").text("No metadata loaded");
+  } else {
+    const entry = metadata[currentMetaIndex];
+    $("#carousel-text").html("<b>" + entry.key + ":</b> " + entry.value);
+  }
+  adjustLayout();
+  renderText();
+}
+
+// ---------------- Annotation Definition Parser ----------------
+function parseAnnoDef(str) {
+  annotationDefs = [];
+  const parts = str.split(";");
+  parts.forEach(p => {
+    const trimmed = p.trim();
+    if (!trimmed) return;
+    const [key, valuesStr] = trimmed.split(":");
+    const k = key.trim();
+    if (!valuesStr) {
+      annotationDefs.push({ key: k, type: "text" });
+    } else if (valuesStr.trim() === "check") {
+      annotationDefs.push({ key: k, type: "checkbox" });
+    } else if (/^\d+\s*-\s*\d+$/.test(valuesStr.trim())) {
+      const [min, max] = valuesStr.trim().split("-").map(x => parseInt(x.trim(), 10));
+      annotationDefs.push({ key: k, type: "number", min, max });
+    } else {
+      const vals = valuesStr.split(",").map(v => v.trim());
+      annotationDefs.push({ key: k, type: "select", values: vals });
+    }
+  });
+}
+
+// ---------------- Linked Groups ----------------
+function computeLinkGroups() {
+  const n = sentences.length;
+  const adj = Array.from({ length: n }, () => new Set());
+  sentences.forEach((s, i) => {
+    if (s.linkedTo != null) {
+      const j = s.linkedTo;
+      if (j >= 0 && j < n) {
+        adj[i].add(j);
+        adj[j].add(i);
+      }
+    }
+  });
+  const visited = Array(n).fill(false);
+  linkGroups = Array(n).fill(null);
+  
+  // Variables moved out of loop to avoid strict block scoping issues
+  let queue;
+  let comp;
+  
+  for (let i = 0; i < n; i++) {
+    if (visited[i]) continue;
+    queue = [i];
+    comp = [];
+    visited[i] = true;
+    while (queue.length) {
+      const cur = queue.shift();
+      comp.push(cur);
+      for (const nb of adj[cur]) {
+        if (!visited[nb]) {
+          visited[nb] = true;
+          queue.push(nb);
+        }
+      }
+    }
+    comp.forEach(idx => (linkGroups[idx] = comp));
+  }
+}
+
+// ---------------- Rendering ----------------
+function renderText() {
+  const container = $("#text-container").empty();
+  sentences.forEach((sentence, i) => {
+    const isHighlighted = sentence.highlights[currentMetaIndex];
+    const note = sentence.notes[currentMetaIndex];
+    const $span = $("<span>")
+      .addClass("sentence")
+      .attr("data-id", i)
+      .attr("title", (i + 1).toString())
+      .toggleClass("highlighted", isHighlighted);
+
+    const para = sentence.words[sentence.words.length - 1] == "\\n";
+
+    // Track formatting states for the current discourse unit
+    let fmt = { bold: false, italic: false, underline: false };
+    let prefixLabels = [];
+
+    sentence.words.forEach(word => {
+      const $wordSpan = $("<span>").text(word + " ").attr("word", word).addClass("word");
+      
+      // --- Special Escapes Handling ---
+      if (word.startsWith("\\l-")) {
+        // Render label outside the unit. Supports underscores for spaces (e.g., \l-Doris_Smith:)
+        prefixLabels.push(word.substring(3).replace(/_/g, " "));
+        $wordSpan.hide(); // Hide the literal code inside the clickable unit
+      }
+      else if (word === "\\b") { 
+        fmt.bold = !fmt.bold; // Toggle Bold
+        $wordSpan.hide(); 
+      } 
+      else if (word === "\\i") { 
+        fmt.italic = !fmt.italic; // Toggle Italic
+        $wordSpan.hide(); 
+      } 
+      else if (word === "\\u") { 
+        fmt.underline = !fmt.underline; // Toggle Underline
+        $wordSpan.hide(); 
+      } 
+      else if (word === "\\t") { 
+        $wordSpan.html("&nbsp;&nbsp;&nbsp;&nbsp;"); // Render tab width
+      } 
+      // Add more specific custom escapes here:
+      // else if (word === "\\your_code") { ... }
+      else {
+        // Apply active formatting to regular words
+        if (fmt.bold) $wordSpan.css("font-weight", "bold");
+        if (fmt.italic) $wordSpan.css("font-style", "italic");
+        if (fmt.underline) $wordSpan.css("text-decoration", "underline");
+      }
+      // --------------------------------
+
+      $wordSpan.appendTo($span);
+    });
+
+    // Add note icon & check for custom alignment colors
+    let hasNote = false;
+    let isApproximate = false;
+    let isComponent = false;
+    let isDuplicate = false;
+    let duplicateId = null;
+
+    if (note && note.trim() !== "") {
+      try {
+        const parsed = JSON.parse(note);
+        if (parsed && typeof parsed === "object") {
+          for (const [k, v] of Object.entries(parsed)) {
+            if (
+              v !== "" &&                // not empty string
+              v !== false &&             // not unchecked
+              v !== null &&              // not null
+              v !== 0                    // not numeric 0
+            ) {
+              hasNote = true;
+            }
+            
+            // --- Custom Color Checks ---
+            const strVal = String(v).toLowerCase();
+            const strKey = String(k).toLowerCase();
+            const isTruthy = v !== false && v !== "false" && v !== "" && v !== 0 && v !== "0";
+
+            if (strVal === "approximate" || (strKey === "approximate" && isTruthy)) isApproximate = true;
+            if (strVal === "component" || (strKey === "component" && isTruthy)) isComponent = true;
+            if (strVal === "duplicate" || (strKey === "duplicate" && isTruthy)) {
+              isDuplicate = true;
+              duplicateId = (strKey === "duplicate") ? v : "legacy";
+            }
+          }
+        } else if (note.trim() !== "") {
+          // plain string note (legacy or no annos)
+          hasNote = true;
+          if (note.toLowerCase().includes("approximate")) isApproximate = true;
+          if (note.toLowerCase().includes("component")) isComponent = true;
+          if (note.toLowerCase().includes("duplicate")) {
+            isDuplicate = true;
+            duplicateId = "legacy";
+          }
+        }
+      } catch {
+        // note wasn't valid JSON — treat as plain text
+        if (note.trim() !== "") {
+          hasNote = true;
+          if (note.toLowerCase().includes("approximate")) isApproximate = true;
+          if (note.toLowerCase().includes("component")) isComponent = true;
+          if (note.toLowerCase().includes("duplicate")) {
+            isDuplicate = true;
+            duplicateId = "legacy";
+          }
+        }
+      }
+    }
+
+    // Apply specific color classes based on priority (Component > Approximate)
+    if (isComponent) {
+      $span.addClass("highlight-component");
+    } else if (isApproximate) {
+      $span.addClass("highlight-approximate");
+    }
+
+    // Apply duplicate texture (orthogonal to background color)
+    if (isDuplicate) {
+      $span.addClass("highlight-duplicate");
+      if (duplicateId !== null) {
+        $span.attr("data-duplicate-id", duplicateId);
+      }
+    }
+
+    if (hasNote){
+      $("<span>")
+        .addClass("note-icon")
+        .addClass("has-note")
+        .attr("data-id", i)
+        .attr("title", hasNote ? sentence.notes[currentMetaIndex] : "")
+        .text(" 📝")
+        .appendTo($span);
+    }else{
+      $("<span>")
+        .addClass("note-icon")
+        .removeClass("has-note")
+        .attr("data-id", i)
+        .attr("title", hasNote ? sentence.notes[currentMetaIndex] : "")
+        .text(" 📝")
+        .appendTo($span);
+    }
+
+    // --- Render Prefix Labels ---
+    // Prepend extracted labels to the container right before the sentence itself
+    prefixLabels.forEach(label => {
+      $("<span>")
+        .addClass("prefix-label")
+        .text(label + " ")
+        .appendTo(container);
+    });
+
+    container.append($span);
+
+    if (para) {
+      container.append("<br><br>");
+    } else if (i < sentences.length - 1) {
+      $("<span>").addClass("separator").text("||").appendTo(container);
+    }
+  });
+  adjustLayout();
+}
+
+// ---------------- Annotation Dialog ----------------
+function showAnnotationDialog(currentVal, onSave) {
+  let existing = {};
+  try {
+    existing = JSON.parse(currentVal);
+  } catch {
+    existing = {};
+  }
+
+  const $dialog = $("<div>").addClass("anno-dialog");
+  annotationDefs.forEach(def => {
+    const $row = $("<div>").addClass("anno-row");
+    $("<label>").text(def.key + ": ").appendTo($row);
+
+    if (def.type === "select") {
+      const $sel = $("<select>").attr("name", def.key);
+      def.values.forEach(v => {
+        const label = v === "0" ? "" : v;
+        $("<option>").val(v === "0" ? "" : v).text(label).appendTo($sel);
+      });
+      const curVal = existing[def.key];
+      if (curVal !== undefined) $sel.val(curVal);
+      else if (!def.values.includes("0")) $sel.val(def.values[0]);
+      $row.append($sel);
+
+    } else if (def.type === "text") {
+      const $input = $("<textarea>")
+        .attr("name", def.key)
+        .val(existing[def.key] || "")
+        .attr("rows", 2)
+        .css("width", "100%");
+      $row.append($input);
+
+    } else if (def.type === "checkbox") {
+      const $chk = $("<input type='checkbox'>")
+        .attr("name", def.key)
+        .prop("checked", existing[def.key] === true || existing[def.key] === "true");
+      $row.append($chk);
+
+    } else if (def.type === "number") {
+      const $num = $("<input type='text'>")
+        .attr("name", def.key)
+        .attr("inputmode", "numeric")
+        .attr("pattern", "[0-9]*")
+        .val(existing[def.key] !== undefined ? existing[def.key] : "")
+        .css("width", "80px");
+
+      // Track validity per input
+      $num.data("valid", true);
+      let lastValid = $num.val();
+
+      $num.on("blur", function () {
+        const raw = $(this).val().trim();
+        const min = def.min, max = def.max;
+
+        if (raw === "") {
+          $(this).data("valid", true);
+          lastValid = "";
+          return;
+        }
+
+        const numVal = Number(raw);
+        if (isNaN(numVal) || raw.match(/[^0-9.-]/)) {
+          alert("Please enter a valid number between " + min + " and " + max + ".");
+          $(this).val(lastValid);
+          $(this).data("valid", false);
+          return;
+        }
+        if (numVal < min || numVal > max) {
+          alert("Value must be between " + min + " and " + max + ".");
+          $(this).val(lastValid);
+          $(this).data("valid", false);
+          return;
+        }
+
+        $(this).data("valid", true);
+        lastValid = raw;
+      });
+
+      $row.append($num);
+    }
+
+    $dialog.append($row);
+  });
+
+  const $saveBtn = $("<button>").text("Save").on("click", () => {
+    // Prevent save if any number input is marked invalid
+    const invalid = $dialog.find("input[type='text'][inputmode='numeric']").filter(function () {
+      return $(this).data("valid") === false;
+    });
+    if (invalid.length > 0) {
+      return; // cancel save and keep dialog open
+    }
+
+    let result = {};
+    annotationDefs.forEach(def => {
+      const $el = $dialog.find(`[name='${def.key}']`);
+      if (def.type === "checkbox") {
+        if ($el.is(":checked")) result[def.key] = true;
+      } else if (def.type === "number") {
+        const val = $el.val();
+        if (val !== "" && !isNaN(val)) result[def.key] = Number(val);
+      } else if (def.type === "select") {
+        const val = $el.val();
+        if (val !== "") result[def.key] = val;
+      } else if (def.type === "text") {
+        const val = $el.val().trim();
+        if (val !== "") result[def.key] = val;
+      }
+    });
+
+    // --- Skip empty annotations ---
+    const nonEmpty = Object.keys(result).length > 0 ? JSON.stringify(result) : "";
+
+    onSave(nonEmpty);
+    $dialog.remove();
+    $(".anno-overlay").remove();
+  });
+
+  const $cancelBtn = $("<button>").text("Cancel").on("click", () => {
+    $dialog.remove();
+    $(".anno-overlay").remove();
+  });
+
+  const $btnRow = $("<div>").addClass("anno-buttons").append($saveBtn, $cancelBtn);
+  $dialog.append($btnRow);
+
+  const $overlay = $("<div>").addClass("anno-overlay");
+  $("body").append($overlay).append($dialog);
+}
+
+// ---------------- File Handling ----------------
+$(document).ready(function () {
+  $("#fileInput").on("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      const lines = evt.target.result.split(/\r?\n/);
+      metadata = [];
+      sentences = [];
+      annotationDefs = [];
+
+      const sentenceLines = [];
+      lines.forEach(line => {
+        if (line.startsWith("#") && line.includes("=")) {
+          const match = line.match(/^#\s*([^=]+)=\s*(.*)$/);
+          if (match) {
+            const key = match[1].trim();
+            const val = match[2].trim();
+            if (key.toLowerCase() === "annos") {
+              parseAnnoDef(val);
+            } else {
+              metadata.push({ key, value: val });
+            }
+          }
+        } else if (line.trim()) {
+          sentenceLines.push(line);
+        }
+      });
+
+      sentenceLines.forEach(line => {
+        const parts = line.split("\t");
+        const words = parts[0].trim().split(/\s+/);
+        let linkedTo = null;
+        for (let w = 0; w < words.length; w++) {
+          const m = words[w].match(/\\s-(\d+)/);
+          if (m) linkedTo = parseInt(m[1], 10) - 1;
+        }
+
+        const s = {
+          words: words,
+          highlights: new Array(metadata.length).fill(false),
+          notes: new Array(metadata.length).fill(""),
+          linkedTo: linkedTo
+        };
+
+        let colIndex = 1;
+        for (let i = 0; i < metadata.length; i++) {
+          if (colIndex < parts.length) {
+            s.highlights[i] = parts[colIndex].trim() === "1";
+            colIndex++;
+          }
+          if (colIndex < parts.length) {
+            s.notes[i] = parts[colIndex].trim();
+            colIndex++;
+          }
+        }
+        sentences.push(s);
+      });
+
+      sentences.forEach(s => {
+        for (let i = 0; i < s.notes.length; i++) {
+          try {
+            const val = JSON.parse(s.notes[i]);
+            if (!val || Object.keys(val).length === 0) s.notes[i] = "";
+          } catch {
+            if (s.notes[i].trim() === "") s.notes[i] = "";
+          }
+        }
+      });
+      
+      computeLinkGroups();
+      currentMetaIndex = 0;
+      updateCarousel();
+    };
+    reader.readAsText(file);
+    $(window).on("resize", adjustLayout);
+    adjustLayout();
+  });
+
+  $("#prev").on("click", function () {
+    if (metadata.length === 0) return;
+    currentMetaIndex = (currentMetaIndex - 1 + metadata.length) % metadata.length;
+    updateCarousel();
+  });
+  $("#next").on("click", function () {
+    if (metadata.length === 0) return;
+    currentMetaIndex = (currentMetaIndex + 1) % metadata.length;
+    updateCarousel();
+  });
+
+  $(document).on("click", ".sentence", function () {
+    const id = $(this).data("id");
+    const group = linkGroups[id] || [id];
+    const newState = !sentences[id].highlights[currentMetaIndex];
+    group.forEach(idx => (sentences[idx].highlights[currentMetaIndex] = newState));
+    renderText();
+  });
+
+  // --- Hover Logic for Duplicate Co-highlighting ---
+  $(document).on("mouseenter", ".sentence", function () {
+    const dupId = $(this).attr("data-duplicate-id");
+    const myTitle = $(this).attr("title");
+    let $targets = $();
+
+    // If this unit references a source, highlight the source and siblings
+    if (dupId !== undefined) {
+      const safeDupId = $.escapeSelector(dupId);
+      $targets = $targets.add(`.sentence[data-duplicate-id='${safeDupId}']`);
+      $targets = $targets.add(`.sentence[title='${safeDupId}']`);
+    }
+
+    // If this unit IS the source for others, highlight them and itself
+    if (myTitle) {
+      const safeTitle = $.escapeSelector(myTitle);
+      const $children = $(`.sentence[data-duplicate-id='${safeTitle}']`);
+      if ($children.length > 0) {
+        $targets = $targets.add($children);
+        $targets = $targets.add(this);
+      }
+    }
+
+    $targets.addClass("co-duplicate");
+  }).on("mouseleave", ".sentence", function () {
+    $(".sentence").removeClass("co-duplicate");
+  });
+  // -------------------------------------------------
+
+  $(document).on("click", ".note-icon", function (e) {
+    e.stopPropagation();
+    const id = $(this).data("id");
+    const group = linkGroups[id] || [id];
+    const currentVal = sentences[id].notes[currentMetaIndex] || "";
+
+    if (annotationDefs.length === 0) {
+      const newNote = prompt("Enter a note for this sentence:", currentVal);
+      if (newNote !== null) {
+        group.forEach(idx => (sentences[idx].notes[currentMetaIndex] = newNote.trim()));
+        renderText();
+      }
+    } else {
+      showAnnotationDialog(currentVal, newVal => {
+        group.forEach(idx => (sentences[idx].notes[currentMetaIndex] = newVal));
+        renderText();
+      });
+    }
+  });
+
+  $("#exportBtn").on("click", function () {
+    let output = "";
+    metadata.forEach(entry => {
+      output += "# " + entry.key + " = " + entry.value + "\n";
+    });
+    if (annotationDefs.length > 0) {
+      const defStrings = annotationDefs.map(d => {
+        if (d.type === "text") return d.key;
+        if (d.type === "checkbox") return d.key + ":check";
+        if (d.type === "number") return d.key + ":" + d.min + "-" + d.max;
+        if (d.type === "select") return d.key + ":" + d.values.join(",");
+      });
+      output += "# annos = " + defStrings.join(";") + "\n";
+    }
+    // --- CLEANUP: remove empty annotations from imported data ---
+    sentences.forEach(s => {
+      for (let i = 0; i < s.notes.length; i++) {
+        try {
+          const val = JSON.parse(s.notes[i]);
+          if (!val || Object.keys(val).length === 0) s.notes[i] = "";
+        } catch {
+          if (s.notes[i].trim() === "") s.notes[i] = "";
+        }
+      }
+    });
+    sentences.forEach(sentence => {
+      let line = sentence.words.join(" ");
+      for (let i = 0; i < metadata.length; i++) {
+        line += "\t" + (sentence.highlights[i] ? "1" : "0");
+        line += "\t" + (sentence.notes[i] || "");
+      }
+      output += line + "\n";
+    });
+    const blob = new Blob([output], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "output.edus";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  updateCarousel();
+});
+</script>
+</body>
+</html>
